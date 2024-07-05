@@ -1416,11 +1416,12 @@ def process_websockets(packet):
 # ============================================================
 
 def process_packets(tshark, args):
-    while True:
-        line = tshark.stdout.readline()
+    for line in tshark.stdout:
         if tshark.returncode is not None:
             sys.exit(tshark.returncode)
 
+        if line == b'':
+            continue
         packet = json.loads(line)
 
         process_websockets(packet)
