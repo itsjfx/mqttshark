@@ -1417,9 +1417,6 @@ def process_websockets(packet):
 
 def process_packets(tshark, args):
     for line in tshark.stdout:
-        if tshark.returncode is not None:
-            sys.exit(tshark.returncode)
-
         if line == b'':
             continue
         packet = json.loads(line)
@@ -1497,7 +1494,14 @@ def main():
             raise ValueError("--default-version must be 3, 4, or 5")
         cmd += ['-o', f'mqtt.default_version:{ver}']
 
-    tshark = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    tshark = subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True)
     process_packets(tshark, args)
+    tshark.wait()
+    if tshark.returncode is not None:
+        return tshark.returncode
 
-main()
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        sys.exit(0)
